@@ -1,0 +1,21 @@
+{
+  "name": "better-perplexity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A transparent search assistant with adaptive personalization",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@8.0.0",
+  "scripts": {
+    "dev": "npm run dev --prefix server & npm run dev --prefix web",
+    "typecheck": "npm run typecheck --prefix web && npm run typecheck --prefix server",
+    "test": "npm run test --prefix web && npm run test --prefix server",
+    "lint": "npm run lint --prefix web"
+  },
+  "workspaces": [
+    "web",
+    "server"
+  ]
+}
+
