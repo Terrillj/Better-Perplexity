@@ -61,6 +61,7 @@ export function rankDocuments(
       domain: searchResult.domain,
       // Use search result date as fallback if page extraction failed
       publishedDate: page.publishedDate || searchResult.publishedDate,
+      features: page.features || null,
     });
   }
 

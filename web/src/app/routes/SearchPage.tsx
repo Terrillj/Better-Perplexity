@@ -4,8 +4,8 @@ import { PlanChips } from '../../components/PlanChips';
 import { AnswerStream } from '../../components/AnswerStream';
 import { SourceCard } from '../../components/SourceCard';
 import { MetricsBar } from '../../components/MetricsBar';
-import { useSearch } from '../../features/search/hooks';
-import { useLogEvent } from '../../features/search/hooks';
+import { PersonalizationBadge } from '../../components/PersonalizationBadge';
+import { useSearch, useLogEvent, usePreferences } from '../../features/search/hooks';
 import { getUserId } from '../../lib/utils';
 import { fetchAnswer } from '../../features/search/api';
 import type { AnswerPacket } from '../../features/search/types';
@@ -15,8 +15,10 @@ export function SearchPage() {
   const [answer, setAnswer] = useState<AnswerPacket | null>(null);
   const [isAnswerLoading, setIsAnswerLoading] = useState(false);
 
+  const userId = getUserId();
   const searchQuery = useSearch(query, query.length > 0);
   const logEvent = useLogEvent();
+  const preferencesQuery = usePreferences(userId);
 
   const handleSearch = async (newQuery: string) => {
     setQuery(newQuery);
@@ -38,13 +40,22 @@ export function SearchPage() {
   };
 
   const handleSourceClick = (sourceId: string, queryId: string) => {
+    // Find the clicked source to get its features
+    const clickedSource = answer?.sources.find(s => s.id === sourceId);
+    
     logEvent.mutate({
-      userId: getUserId(),
+      userId,
       timestamp: Date.now(),
       eventType: 'SOURCE_CLICKED',
       sourceId,
       queryId,
+      meta: clickedSource?.features ? { features: clickedSource.features } : undefined,
     });
+    
+    // Refetch preferences after a click to update the badge
+    setTimeout(() => {
+      preferencesQuery.refetch();
+    }, 500);
   };
 
   return (
@@ -58,6 +69,18 @@ export function SearchPage() {
       {searchQuery.data?.plan && (
         <div className="mb-6">
           <PlanChips plan={searchQuery.data.plan} />
+        </div>
+      )}
+
+      {/* Personalization Badge */}
+      {preferencesQuery.data && (
+        <div className="mb-4">
+          <PersonalizationBadge
+            preferences={Object.fromEntries(
+              preferencesQuery.data.topArms.map(({ arm, score }) => [arm, score])
+            )}
+            totalInteractions={preferencesQuery.data.totalInteractions}
+          />
         </div>
       )}
 
@@ -93,6 +116,7 @@ export function SearchPage() {
                     source={source}
                     index={displayIndex}
                     onClick={() => handleSourceClick(source.id, answer.queryId)}
+                    userTopArms={preferencesQuery.data?.topArms.slice(0, 3).map(t => t.arm)}
                   />
                 );
               })}
@@ -124,6 +148,7 @@ export function SearchPage() {
                       }}
                       index={displayIndex}
                       onClick={() => handleSourceClick(result.id, query)}
+                      userTopArms={preferencesQuery.data?.topArms.slice(0, 3).map(t => t.arm)}
                     />
                   );
                 })}

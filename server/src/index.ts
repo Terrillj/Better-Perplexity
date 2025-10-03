@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import searchRouter from './routes/search.js';
 import answerRouter from './routes/answer.js';
 import eventsRouter from './routes/events.js';
+import preferencesRouter from './routes/preferences.js';
 
 // Load environment variables from parent directory
 config({ path: '../.env' });
@@ -27,6 +28,7 @@ app.get('/health', (req, res) => {
 app.use('/api/search', searchRouter);
 app.use('/api/answer', answerRouter);
 app.use('/api/events', eventsRouter);
+app.use('/api/preferences', preferencesRouter);
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

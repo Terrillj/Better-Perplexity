@@ -4,10 +4,12 @@ import {
   SearchResultSchema,
   AnswerPacketSchema,
   UserEventSchema,
+  UserPreferencesSchema,
   type QueryPlan,
   type SearchResult,
   type AnswerPacket,
   type UserEvent,
+  type UserPreferences,
 } from './types';
 
 const API_BASE = '/api';
@@ -61,5 +63,17 @@ export async function logUserEvent(event: UserEvent): Promise<void> {
   if (!response.ok) {
     console.error('Failed to log event:', response.statusText);
   }
+}
+
+// GET /api/preferences?userId=<userId>
+export async function fetchPreferences(userId: string): Promise<UserPreferences> {
+  const response = await fetch(`${API_BASE}/preferences?userId=${encodeURIComponent(userId)}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch preferences: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return UserPreferencesSchema.parse(data);
 }
 

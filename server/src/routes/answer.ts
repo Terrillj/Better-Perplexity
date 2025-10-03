@@ -42,6 +42,7 @@ router.post('/', async (req, res) => {
 
     // Step 4: Rank documents
     let rankedDocs = rankDocuments(query, pages, searchResults);
+    console.log(`[FEATURES] Top doc features:`, rankedDocs[0]?.features);
 
     // Step 5: Apply personalization
     if (userId) {

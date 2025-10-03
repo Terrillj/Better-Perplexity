@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { ContentFeaturesSchema } from '../ranker/featureExtractor.js';
 
 // Search result from provider (normalized)
 export const SearchResultSchema = z.object({
@@ -22,6 +23,7 @@ export const PageExtractSchema = z.object({
   content: z.string(),
   excerpt: z.string(),
   publishedDate: z.string().nullable(),
+  features: ContentFeaturesSchema.optional(),
 });
 export type PageExtract = z.infer<typeof PageExtractSchema>;
 
@@ -41,6 +43,7 @@ export const RankedDocSchema = z.object({
   rankingReason: z.string(),
   domain: z.string(),
   publishedDate: z.string().nullable(),
+  features: ContentFeaturesSchema.nullable(),
 });
 export type RankedDoc = z.infer<typeof RankedDocSchema>;
 

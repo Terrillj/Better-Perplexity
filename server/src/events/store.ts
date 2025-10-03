@@ -1,14 +1,51 @@
 import { UserEvent } from '../types/contracts.js';
+import { ThompsonSamplingBandit, featuresToArms } from '../ranker/bandit.js';
+import type { ContentFeatures } from '../ranker/featureExtractor.js';
 
 // In-memory event store (TODO: Replace with SQLite)
 const eventLog: UserEvent[] = [];
 
+// In-memory bandit instances per user
+const userBandits = new Map<string, ThompsonSamplingBandit>();
+
+/**
+ * Get or create a Thompson Sampling bandit for a user
+ * @param userId - User identifier
+ * @returns User's bandit instance
+ */
+export function getUserBandit(userId: string): ThompsonSamplingBandit {
+  if (!userBandits.has(userId)) {
+    userBandits.set(userId, new ThompsonSamplingBandit());
+  }
+  return userBandits.get(userId)!;
+}
+
 /**
  * Logs a user interaction event
+ * Automatically updates the user's bandit based on event type
  */
 export function logEvent(event: UserEvent): void {
   eventLog.push(event);
   console.log(`[EVENT] ${event.eventType} by ${event.userId}`);
+
+  const bandit = getUserBandit(event.userId);
+
+  // Update bandit based on event type
+  if (event.eventType === 'SOURCE_CLICKED' && event.meta?.features) {
+    // User clicked a source - this is a success for those feature arms
+    const features = event.meta.features as ContentFeatures;
+    const arms = featuresToArms(features);
+    bandit.recordClick(arms);
+    console.log(`[BANDIT] Recorded click for ${event.userId}: ${arms.join(', ')}`);
+  } else if (event.eventType === 'SOURCE_EXPANDED' && event.meta?.allSourceFeatures) {
+    // User saw sources but didn't click yet - record impressions
+    const allFeatures = event.meta.allSourceFeatures as ContentFeatures[];
+    for (const features of allFeatures) {
+      const arms = featuresToArms(features);
+      bandit.recordImpression(arms);
+    }
+    console.log(`[BANDIT] Recorded ${allFeatures.length} impressions for ${event.userId}`);
+  }
 }
 
 /**
@@ -19,8 +56,42 @@ export function getUserEvents(userId: string): UserEvent[] {
 }
 
 /**
- * Computes user preferences from event history
- * Used for personalization reweighting
+ * Get Thompson Sampling scores for a user's bandit
+ * Returns arm → score map for personalized reweighting
+ * 
+ * @param userId - User identifier
+ * @returns Map of feature arms to sampled scores (0-1)
+ */
+export function getUserBanditScores(userId: string): Map<string, number> {
+  const bandit = getUserBandit(userId);
+  return bandit.getArmScores();
+}
+
+/**
+ * Clears all data for a user (bandit state and event history)
+ * Useful for demo resets and testing
+ * 
+ * @param userId - User identifier
+ */
+export function clearUserData(userId: string): void {
+  // Remove user's bandit
+  userBandits.delete(userId);
+  
+  // Remove user's events
+  const initialLength = eventLog.length;
+  for (let i = eventLog.length - 1; i >= 0; i--) {
+    if (eventLog[i].userId === userId) {
+      eventLog.splice(i, 1);
+    }
+  }
+  
+  const removedCount = initialLength - eventLog.length;
+  console.log(`[CLEAR] Removed ${removedCount} events and bandit state for user: ${userId}`);
+}
+
+/**
+ * @deprecated Use getUserBanditScores() instead
+ * Legacy preference computation for backwards compatibility
  */
 export function getUserPreferences(userId: string) {
   const events = getUserEvents(userId);
@@ -35,11 +106,7 @@ export function getUserPreferences(userId: string) {
     };
   }
 
-  // TODO: Implement actual preference computation
-  // - Count clicks by TLD (.edu, .gov, .com, etc.)
-  // - Compute recency preference (% clicks on fresh content)
-  // - Track content type preferences
-
+  // TODO: Remove this function once all code uses getUserBanditScores()
   return {
     totalEvents: events.length,
     tldPreference: { edu: 0.7, com: 0.2, org: 0.1 } as Record<string, number>,
