@@ -1,8 +1,14 @@
-import { JSDOM } from 'jsdom';
+import { JSDOM, VirtualConsole } from 'jsdom';
 import { Readability } from '@mozilla/readability';
 import { PageExtract } from '../types/contracts.js';
+import { extractPublishedDate } from './metaExtractor.js';
 
 const FETCH_TIMEOUT = 8000; // 8 seconds
+
+// Suppress JSDOM CSS parser warnings (noisy with modern CSS like Tailwind)
+const virtualConsole = new VirtualConsole();
+virtualConsole.on('error', () => {}); // Suppress CSS parsing errors
+virtualConsole.on('warn', () => {}); // Suppress CSS warnings
 
 /**
  * Fetches and extracts readable content from a URL
@@ -33,7 +39,7 @@ export async function fetchPage(url: string): Promise<PageExtract | null> {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html, { url });
+    const dom = new JSDOM(html, { url, virtualConsole });
     const reader = new Readability(dom.window.document);
     const article = reader.parse();
 
@@ -42,12 +48,14 @@ export async function fetchPage(url: string): Promise<PageExtract | null> {
       return null;
     }
 
+    const metaDate = extractPublishedDate(dom);
+
     return {
       url,
       title: article.title,
       content: article.textContent,
       excerpt: article.excerpt,
-      publishedDate: null, // TODO: Extract from meta tags
+      publishedDate: metaDate, // Meta tags take priority
     };
   } catch (error) {
     console.error(`Error fetching ${url}:`, error);

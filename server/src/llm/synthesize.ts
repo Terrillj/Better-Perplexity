@@ -10,15 +10,17 @@ RULES:
 1. Answer the user's question using ONLY information from the provided sources
 2. Cite sources inline using [N] where N is the source number (1-indexed)
 3. Every factual claim MUST have a citation
-4. Use 2-5 paragraphs, be concise but comprehensive
-5. If sources conflict, acknowledge it: "Source [1] claims X, while [2] suggests Y"
-6. If sources don't fully answer the question, say so
-7. Use clear, direct language - no preamble like "Based on the sources..."
+4. Use MULTIPLE different sources - aim to cite at least 3-5 different sources when available
+5. Use 2-5 paragraphs, be concise but comprehensive
+6. If sources conflict, acknowledge it: "Source [1] claims X, while [2] suggests Y"
+7. If sources don't fully answer the question, say so
+8. Use clear, direct language - no preamble like "Based on the sources..."
 
 FORMAT:
 - Inline citations: [1], [2], [3]
 - Multiple sources for one claim: [1,2]
-- Write in markdown (bold, italics, lists OK)`;
+- Write in markdown (bold, italics, lists OK)
+- Prioritize citing diverse sources to show breadth of research`;
 
 /**
  * Build user prompt with sources
@@ -36,10 +38,12 @@ function buildUserPrompt(query: string, docs: RankedDoc[]): string {
 }
 
 /**
- * Extract all citation indices from text (e.g., [1], [2,3], [5])
+ * Extract all citation indices from text (e.g., [1], [2,3], [5], [1, 2, 3])
+ * Handles both [1,2,3] and [1, 2, 3] formats
  */
 function extractCitationIndices(text: string): number[] {
-  const citationRegex = /\[(\d+(?:,\d+)*)\]/g;
+  // Allow optional whitespace after commas: [1, 2, 3] or [1,2,3]
+  const citationRegex = /\[(\d+(?:\s*,\s*\d+)*)\]/g;
   const indices = new Set<number>();
   
   let match;
@@ -121,7 +125,9 @@ function processCitations(
   const citationRate = citationIndices.length > 0 
     ? (citations.length / citationIndices.length) * 100 
     : 0;
-  console.log(`Citation coverage: ${citations.length}/${citationIndices.length} valid (${citationRate.toFixed(1)}%)`);
+  const sourcesUsed = citationIndices.length;
+  const sourcesAvailable = docs.length;
+  console.log(`Citation coverage: ${citations.length}/${citationIndices.length} valid (${citationRate.toFixed(1)}%) | Sources used: ${sourcesUsed}/${sourcesAvailable}`);
   
   return { processedText, citations };
 }

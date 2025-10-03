@@ -1,5 +1,6 @@
 import { SearchResult } from '../types/contracts.js';
 import { createHash } from 'crypto';
+import { parseBraveAge } from '../utils/dateParser.js';
 
 // Brave Search API wrapper
 // Docs: https://api.search.brave.com/app/documentation/web-search/get-started
@@ -57,7 +58,7 @@ export async function searchWithBrave(
         title: result.title,
         snippet: result.description,
         domain,
-        publishedDate: result.age || null, // TODO: Parse age into ISO date
+        publishedDate: parseBraveAge(result.age),
       };
     });
   } catch (error) {

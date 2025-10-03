@@ -1,4 +1,5 @@
 import { PageExtract, RankedDoc, SearchResult } from '../types/contracts.js';
+import { BM25Scorer } from './bm25.js';
 
 /**
  * Scores and ranks documents based on multiple signals
@@ -9,15 +10,25 @@ export function rankDocuments(
   pages: PageExtract[],
   searchResults: SearchResult[]
 ): RankedDoc[] {
+  // Build corpus for BM25 (title + excerpt for each page)
+  const documents = pages.map(page => `${page.title} ${page.excerpt}`);
+  const bm25 = new BM25Scorer(documents);
+  
   const rankedDocs: RankedDoc[] = [];
 
-  for (const page of pages) {
+  for (let i = 0; i < pages.length; i++) {
+    const page = pages[i];
     const searchResult = searchResults.find(r => r.url === page.url);
     if (!searchResult) continue;
 
     // Compute signals
-    const relevance = computeRelevance(query, page);
-    const recency = computeRecency(page.publishedDate);
+    const legacyScore = computeKeywordOverlap(query, page); // Keep for comparison
+    const bm25Score = bm25.score(query, i);
+    
+    console.log(`[RELEVANCE] "${page.title.slice(0, 50)}": legacy=${legacyScore.toFixed(2)}, bm25=${bm25Score.toFixed(2)}`);
+    
+    const relevance = bm25Score; // Use BM25
+    const recency = computeRecency(page.publishedDate || searchResult.publishedDate);
     const sourceQuality = computeSourceQuality(searchResult.domain);
     const coverage = computeCoverage(page.content);
 
@@ -48,7 +59,8 @@ export function rankDocuments(
       },
       rankingReason: reasons.length > 0 ? reasons.join(', ') : 'matched query',
       domain: searchResult.domain,
-      publishedDate: page.publishedDate,
+      // Use search result date as fallback if page extraction failed
+      publishedDate: page.publishedDate || searchResult.publishedDate,
     });
   }
 
@@ -56,9 +68,8 @@ export function rankDocuments(
   return rankedDocs.sort((a, b) => b.score - a.score);
 }
 
-function computeRelevance(query: string, page: PageExtract): number {
-  // TODO: Implement BM25 or TF-IDF scoring
-  // For now, simple keyword overlap
+function computeKeywordOverlap(query: string, page: PageExtract): number {
+  // Legacy keyword overlap for comparison
   const queryTerms = query.toLowerCase().split(/\s+/);
   const content = (page.title + ' ' + page.excerpt).toLowerCase();
 

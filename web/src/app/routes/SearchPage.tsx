@@ -82,32 +82,52 @@ export function SearchPage() {
               {searchQuery.isLoading && (
                 <div className="text-center text-gray-500 py-8">Loading sources...</div>
               )}
-              {searchQuery.data?.results.map((result, idx) => (
-                <SourceCard
-                  key={result.id}
-                  source={{
-                    ...result,
-                    score: 0.8,
-                    excerpt: result.snippet,
-                    signals: {
-                      relevance: 0.8,
-                      recency: 0.6,
-                      sourceQuality: 0.7,
-                    },
-                    rankingReason: 'matched query',
-                  }}
-                  index={idx + 1}
-                  onClick={() => handleSourceClick(result.id, query)}
-                />
-              ))}
-              {answer?.sources.map((source, idx) => (
-                <SourceCard
-                  key={source.id}
-                  source={source}
-                  index={idx + 1}
-                  onClick={() => handleSourceClick(source.id, answer.queryId)}
-                />
-              ))}
+              {/* First: Show sources used in answer synthesis */}
+              {answer?.sources && console.log(`\n=== SOURCE DISPLAY SUMMARY ===\nTotal synthesis sources: ${answer.sources.length}\nTotal search results: ${searchQuery.data?.results.length || 0}\n==============================\n`)}
+              {answer?.sources.map((source, idx) => {
+                const displayIndex = idx + 1;
+                console.log(`[SYNTHESIS SOURCE #${displayIndex}] ID: ${source.id}, Title: ${source.title}, Used in answer: YES`);
+                return (
+                  <SourceCard
+                    key={source.id}
+                    source={source}
+                    index={displayIndex}
+                    onClick={() => handleSourceClick(source.id, answer.queryId)}
+                  />
+                );
+              })}
+              {/* Second: Show additional sources from search results not in answer */}
+              {searchQuery.data?.results
+                .filter((result) => {
+                  const isInAnswer = answer?.sources.some((s) => s.id === result.id);
+                  if (isInAnswer) {
+                    console.log(`[FILTERED OUT] ID: ${result.id}, Title: ${result.title}, Reason: Already in synthesis sources`);
+                  }
+                  return !isInAnswer;
+                })
+                .map((result, idx) => {
+                  const displayIndex = (answer?.sources.length || 0) + idx + 1;
+                  console.log(`[ADDITIONAL SOURCE #${displayIndex}] ID: ${result.id}, Title: ${result.title}, Used in answer: NO`);
+                  return (
+                    <SourceCard
+                      key={result.id}
+                      source={{
+                        ...result,
+                        score: 0.8,
+                        excerpt: result.snippet,
+                        signals: {
+                          relevance: 0.8,
+                          recency: 0.6,
+                          sourceQuality: 0.7,
+                        },
+                        rankingReason: 'matched query',
+                      }}
+                      index={displayIndex}
+                      onClick={() => handleSourceClick(result.id, query)}
+                    />
+                  );
+                })}
+              {answer?.sources && searchQuery.data?.results && console.log(`\n=== FINAL SOURCE COUNT ===\nSynthesis sources shown: ${answer.sources.length}\nAdditional sources shown: ${searchQuery.data.results.filter((r) => !answer.sources.some((s) => s.id === r.id)).length}\nTotal sources displayed: ${answer.sources.length + searchQuery.data.results.filter((r) => !answer.sources.some((s) => s.id === r.id)).length}\n==========================\n`)}
             </div>
           </div>
         </div>

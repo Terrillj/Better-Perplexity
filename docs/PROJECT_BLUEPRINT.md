@@ -1,8 +1,8 @@
 # Better-Perplexity: Project Blueprint
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Last Updated:** October 2, 2025  
-**Status:** 🟢 Core pipeline operational, production-ready
+**Status:** 🟢 Core pipeline operational with foundation improvements, production-ready
 
 ---
 
@@ -85,7 +85,7 @@ flowchart TD
 
 **Scraper:** Fetches URLs with timeout, applies Mozilla Readability, extracts metadata. Falls back to snippet if extraction fails.
 
-**Ranker:** Scores documents using BM25 relevance + recency + source quality (.edu boost) + coverage. Deduplicates near-matches. **Personalization hook applies learned weights here** (see next section).
+**Ranker:** Scores documents using **BM25 relevance** (IDF-weighted, spam-resistant) + **recency** (parsed publication dates) + **source quality** (.edu boost) + **coverage**. Publication dates extracted from meta tags with Brave API fallback. Deduplicates near-matches. **Personalization hook applies learned weights here** (see next section).
 
 **Synthesis:** LLM generates answer from top 8-10 docs. System prompt enforces citations `[N]`. Validates citations post-generation.
 
@@ -219,6 +219,7 @@ npm run dev              # Starts both frontend (5173) and backend (3001)
   - M2.2: Answer synthesis with citations ✅
   - M2.3: Parallel search & intelligent merging ✅
   - M2.4: Unique result ID generation (URL-based hashing) ✅
+  - M2.5: Foundation improvements (date parsing + BM25 scoring) ✅
 
 **M3: Personalization** 🟡 IN PROGRESS — Basic hooks implemented, major enhancement planned
   - Event infrastructure complete ✅
@@ -314,10 +315,10 @@ Step 4: CONCURRENT SCRAPING ✅
 
 Step 5: RANKING & SCORING ✅
   Multi-signal scoring for each document:
-  - Relevance (BM25-like text matching)
-  - Recency (boost recent publications)
-  - Source Quality (.edu domains +0.2)
-  - Coverage (content length)
+  - **Relevance:** BM25 algorithm (IDF weighting prevents keyword stuffing)
+  - **Recency:** Parsed publication dates (meta tags → Brave age → null fallback)
+  - **Source Quality:** .edu/.gov domain boost (+0.2)
+  - **Coverage:** Content length scoring with diminishing returns
 
 Step 6: PERSONALIZATION ✅ (if userId provided)
   Apply user-specific preference weights:
@@ -371,6 +372,29 @@ Step 9: USER INTERACTION TRACKING ✅
 - **Problem:** Watch mode doesn't reload `.env` changes
 - **Solution:** Kill server process (port 3001) and restart after env changes
 - **Note:** Generate new API key after Brave plan upgrades
+
+### Foundation Improvements (Oct 2, 2025)
+
+**✅ Publication Date Parsing**
+- **What:** Parse Brave API `age` field ("2 days ago") into ISO dates (YYYY-MM-DD)
+- **Why:** Accurate recency scoring instead of mostly null dates
+- **Implementation:**
+  - Created `dateParser.ts` utility for Brave age parsing
+  - Created `metaExtractor.ts` for extracting dates from HTML meta tags
+  - Priority chain: meta tags → Brave age → null (neutral 0.5 recency)
+- **Files:** `server/src/utils/dateParser.ts`, `server/src/scraper/metaExtractor.ts`
+- **Impact:** Recency scores now dynamic; time-sensitive queries boosted correctly
+
+**✅ BM25 Relevance Scoring**
+- **What:** Replaced naive keyword overlap with BM25 ranking algorithm
+- **Why:** Prevent spam/keyword stuffing; IDF weighting for better relevance
+- **Implementation:**
+  - Custom BM25 scorer (k1=1.5, b=0.75 standard parameters)
+  - IDF calculation penalizes common words
+  - Term frequency saturation with document length normalization
+- **Files:** `server/src/ranker/bm25.ts`, updated `server/src/ranker/rank.ts`
+- **Impact:** More nuanced relevance scores; spam-resistant ranking
+- **Logging:** A/B comparison logs show legacy vs BM25 scores for validation
 
 ### Known Limitations
 
