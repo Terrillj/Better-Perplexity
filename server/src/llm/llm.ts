@@ -151,17 +151,18 @@ export async function generateCompletion(
  * Generate streaming text completion
  * 
  * @param prompt - User prompt
- * @param options - LLM options (temperature, maxTokens, systemPrompt)
+ * @param options - LLM options (temperature, maxTokens, systemPrompt, onChunk callback)
  * @returns Generated text (awaits full completion)
  */
 export async function generateStreamingCompletion(
   prompt: string,
-  options: LLMOptions = {}
+  options: LLMOptions & { onChunk?: (chunk: string) => void } = {}
 ): Promise<string> {
   const {
     temperature = 0.5,
     maxTokens = 2000,
     systemPrompt = 'You are a helpful assistant.',
+    onChunk,
   } = options;
 
   return withRetry(async () => {
@@ -182,6 +183,10 @@ export async function generateStreamingCompletion(
       const delta = chunk.choices[0]?.delta?.content;
       if (delta) {
         fullContent += delta;
+        // Call the onChunk callback if provided
+        if (onChunk) {
+          onChunk(delta);
+        }
       }
     }
 

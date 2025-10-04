@@ -24,7 +24,129 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+  
+  /* Better text rendering */
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Modern Animations - Respect prefers-reduced-motion */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Fade in animation */
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Slide up animation */
+    @keyframes slide-up {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Slide down animation */
+    @keyframes slide-down {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in {
+      animation: fade-in 0.5s ease-out;
+    }
+
+    .animate-fade-in-delayed {
+      animation: fade-in 0.6s ease-out 0.2s both;
+    }
+
+    .animate-slide-up {
+      animation: slide-up 0.5s ease-out;
+    }
+
+    .animate-slide-up-delayed {
+      animation: slide-up 0.6s ease-out 0.15s both;
+    }
+
+    .animate-slide-down {
+      animation: slide-down 0.4s ease-out;
+    }
+  }
+
+  /* Fallback for reduced motion - instant appearance */
+  @media (prefers-reduced-motion: reduce) {
+    .motion-safe\:animate-fade-in,
+    .motion-safe\:animate-fade-in-delayed,
+    .motion-safe\:animate-slide-up,
+    .motion-safe\:animate-slide-up-delayed,
+    .motion-safe\:animate-slide-down {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Source card highlight animation */
+  @keyframes source-highlight {
+    0% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5);
+      border-color: rgb(59, 130, 246);
+    }
+    50% {
+      box-shadow: 0 0 20px 5px rgba(59, 130, 246, 0.3);
+      border-color: rgb(59, 130, 246);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+      border-color: rgb(229, 231, 235);
+    }
+  }
+
+  .source-highlight {
+    animation: source-highlight 2s ease-out;
+  }
+
+  /* Shimmer animation for loading skeleton */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  /* Smooth hover lift effect */
+  .hover-lift {
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   }
 }
 

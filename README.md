@@ -2,6 +2,48 @@
 
 A transparent search assistant that answers questions with cited sources and adaptive personalization.
 
+## 🚀 For Evaluators
+
+**Get running in < 5 minutes:**
+
+```bash
+# 1. Clone the repository
+git clone <repo-url>
+cd Better-Perplexity
+
+# 2. Copy environment template
+cp .env.example .env
+
+# 3. Add your OpenAI API key to .env
+# Get key at: https://platform.openai.com/api-keys
+# (Brave Search API key already provided for testing)
+
+# 4. Install dependencies
+pnpm install
+# Or use npm: npm install
+
+# 5. Start both servers
+pnpm dev
+# Server runs on http://localhost:3001
+# Web runs on http://localhost:5173
+
+# 6. Open browser
+open http://localhost:5173
+```
+
+**Quick Test:**
+1. Enter: "What are the latest developments in quantum computing?"
+2. Watch 2-4 sub-query chips appear
+3. See sources populate with ranking badges
+4. Answer appears with inline citations `[1] [2] [3]`
+5. Click 3-4 `.edu` sources, then try another query → observe personalization
+
+**Need help?** See [`TESTING.md`](TESTING.md) for detailed test scenarios and troubleshooting.
+
+**Cost:** ~$0.20 for 20 test queries (OpenAI GPT-4 Turbo). Brave Search is free.
+
+---
+
 ## Key Features
 
 - **Transparent Search**: See why each source was chosen and how sub-queries were planned
@@ -123,8 +165,63 @@ See individual README files in `/web` and `/server` for detailed TODOs.
 
 See `docs/DEMO_SCRIPT.md` for a 60-second demo flow.
 
+## Troubleshooting
+
+### Port 3001 already in use
+```bash
+# Kill process on port 3001
+lsof -ti:3001 | xargs kill -9
+
+# Or change port in .env
+PORT=3002
+```
+
+### OpenAI API Error
+**Error:** `Invalid OpenAI API key` or `Insufficient quota`
+
+**Solutions:**
+- Check key validity at https://platform.openai.com/api-keys
+- Ensure key starts with `sk-proj-` or `sk-`
+- Verify billing is enabled on your OpenAI account
+- Check you have available credits
+
+### No search results
+**Error:** `Brave Search API returned 401` or `No results found`
+
+**Solutions:**
+- Brave key is already provided in `.env.example` (BSAg9FdN7meMZ7HaL5H86UPO0W3D-a2)
+- If still failing, set `MOCK_MODE=1` in `.env` for testing without API
+- Or get your own key at: https://api.search.brave.com/register
+
+### Cannot connect to server
+**Error:** `Failed to fetch` or `ERR_CONNECTION_REFUSED`
+
+**Solutions:**
+```bash
+# Check if server is running
+curl http://localhost:3001/health
+
+# If not, restart:
+pnpm dev
+```
+
+### Dependencies won't install
+**Error:** Package manager issues
+
+**Solutions:**
+```bash
+# Clear cache and reinstall
+rm -rf node_modules web/node_modules server/node_modules
+rm -rf .pnpm-store
+pnpm install
+
+# Or use npm instead
+npm install
+```
+
 ## Documentation
 
+- `TESTING.md` - **Test scenarios and troubleshooting for evaluators**
 - `docs/PROJECT_BLUEPRINT.md` - Full project specification
 - `docs/DEMO_SCRIPT.md` - Demo walkthrough
 - `ENV_SETUP.md` - Environment configuration

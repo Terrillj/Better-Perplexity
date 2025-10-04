@@ -13,14 +13,14 @@ export interface ArmStats {
  * Thompson Sampling Multi-Armed Bandit for feature-based personalization
  * 
  * Each "arm" corresponds to a feature value (e.g., "depth:expert", "style:technical").
- * The bandit tracks successes (clicks) and failures (impressions without clicks),
- * then uses Beta distribution sampling to balance exploration vs exploitation.
+ * Uses click-only learning: only tracks explicit clicks as successes, avoiding false
+ * negatives from unviewed sources. The bandit uses Beta distribution sampling to
+ * balance exploration vs exploitation.
  * 
  * @example
  * const bandit = new ThompsonSamplingBandit();
- * bandit.recordImpression(["depth:expert", "style:technical"]);
- * bandit.recordClick(["depth:expert"]);
- * const scores = bandit.getArmScores(); // depth:expert will have higher score
+ * bandit.recordClick(["depth:expert", "style:technical"]);
+ * const scores = bandit.getArmScores(); // clicked features will have higher scores
  */
 export class ThompsonSamplingBandit {
   private arms: Map<string, ArmStats> = new Map();
@@ -35,8 +35,13 @@ export class ThompsonSamplingBandit {
   }
 
   /**
-   * Record impressions for feature arms (shown to user but not clicked)
-   * Increments failure count for each arm
+   * @deprecated Using click-only learning to avoid false negatives.
+   * 
+   * Recording impressions creates false negatives: users see ~15 sources but
+   * only engage with 2-3. Recording all 15 as impressions implies 13 "failures"
+   * when the user simply didn't have time to read them all.
+   * 
+   * This method is kept for backwards compatibility but should not be used.
    * 
    * @param featureArms - Array of feature arm strings (e.g., ["depth:expert", "style:technical"])
    */
@@ -50,7 +55,7 @@ export class ThompsonSamplingBandit {
 
   /**
    * Record a click on a source with given feature arms
-   * Decrements failures (since the impression led to click) and increments successes
+   * Increments success count for each arm (click-only learning)
    * 
    * @param featureArms - Array of feature arm strings for the clicked source
    */
@@ -58,11 +63,6 @@ export class ThompsonSamplingBandit {
     for (const arm of featureArms) {
       this.ensureArm(arm);
       const stats = this.arms.get(arm)!;
-      
-      // Convert the impression to a success
-      if (stats.failures > 0) {
-        stats.failures -= 1;
-      }
       stats.successes += 1;
     }
   }

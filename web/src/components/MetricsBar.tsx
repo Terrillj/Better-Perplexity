@@ -18,10 +18,6 @@ export function MetricsBar({ timeMs, sourceCount }: MetricsBarProps) {
           <span>{sourceCount}</span>
         </div>
       )}
-      <div className="flex items-center gap-1">
-        <span className="font-semibold">Cost:</span>
-        <span>~$0.01</span>
-      </div>
     </div>
   );
 }

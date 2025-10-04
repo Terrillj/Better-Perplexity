@@ -1,5 +1,5 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { fetchSearch, fetchAnswer, logUserEvent, fetchPreferences } from './api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchSearch, fetchAnswer, logUserEvent, fetchPreferences, fetchUserEvents, resetUserData } from './api';
 import type { QueryPlan, UserEvent } from './types';
 
 export function useSearch(query: string, enabled = false) {
@@ -30,6 +30,28 @@ export function usePreferences(userId: string, enabled = true) {
     queryFn: () => fetchPreferences(userId),
     enabled: enabled && userId.length > 0,
     staleTime: 30000, // 30 seconds - preferences change slowly
+  });
+}
+
+export function useUserEvents(userId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['events', userId],
+    queryFn: () => fetchUserEvents(userId),
+    enabled: enabled && userId.length > 0,
+    refetchInterval: 5000, // Refetch every 5 seconds for demo panel
+  });
+}
+
+export function useResetUserData() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (userId: string) => resetUserData(userId),
+    onSuccess: (_, userId) => {
+      // Invalidate all queries for this user
+      queryClient.invalidateQueries({ queryKey: ['preferences', userId] });
+      queryClient.invalidateQueries({ queryKey: ['events', userId] });
+    },
   });
 }
 

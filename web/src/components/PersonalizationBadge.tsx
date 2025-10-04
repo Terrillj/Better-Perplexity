@@ -38,11 +38,11 @@ export function PersonalizationBadge({ preferences, totalInteractions }: Persona
   };
 
   return (
-    <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-4">
-      <div className="flex items-start gap-3">
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4">
+      <div className="flex items-start gap-2">
         <div className="flex-shrink-0">
           <svg
-            className="w-5 h-5 text-purple-600"
+            className="w-4 h-4 text-gray-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -56,15 +56,15 @@ export function PersonalizationBadge({ preferences, totalInteractions }: Persona
           </svg>
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-semibold text-purple-900 mb-1">
-            Personalized for You
+          <h3 className="text-xs font-medium text-gray-700 mb-1">
+            Sources you might find helpful
           </h3>
-          <p className="text-xs text-purple-700">
-            Based on {totalInteractions} interactions, we've learned you prefer:{' '}
+          <p className="text-xs text-gray-600">
+            You tend to prefer:{' '}
             {sortedPreferences.map(([arm, score], idx) => (
               <span key={arm}>
-                <span className="font-medium">
-                  {formatArm(arm)} ({Math.round(score * 100)}%)
+                <span className="font-medium text-gray-700">
+                  {formatArm(arm)}
                 </span>
                 {idx < sortedPreferences.length - 1 && ', '}
               </span>

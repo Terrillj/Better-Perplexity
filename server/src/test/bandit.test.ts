@@ -53,8 +53,8 @@ describe('ThompsonSamplingBandit', () => {
   });
 
   describe('Record Click', () => {
-    it('should increment successes and decrement failures when click after impression', () => {
-      bandit.recordImpression(['depth:expert']);
+    it('should increment successes (click-only learning)', () => {
+      // In click-only mode, we don't track impressions/failures
       bandit.recordClick(['depth:expert']);
       
       const stats = bandit.getArmStats('depth:expert');
@@ -79,7 +79,6 @@ describe('ThompsonSamplingBandit', () => {
     });
 
     it('should handle multiple arms in single click', () => {
-      bandit.recordImpression(['depth:expert', 'style:technical', 'format:tutorial']);
       bandit.recordClick(['depth:expert', 'style:technical', 'format:tutorial']);
       
       expect(bandit.getArmStats('depth:expert')).toEqual({ successes: 1, failures: 0 });

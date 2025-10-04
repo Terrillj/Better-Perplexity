@@ -72,17 +72,35 @@ export async function executeParallelSearch(
     `[MERGE] ${totalResults} results → ${merged.length} unique → ${Math.min(merged.length, 20)} selected`
   );
 
+  // Filter Wikipedia sources due to academic/professional stigma
+  // Wikipedia is valuable but often seen as insufficiently authoritative
+  // In production, this could be a user preference setting
+  const filtered = filterWikipediaSources(merged);
+  const removedCount = merged.length - filtered.length;
+  
+  if (removedCount > 0) {
+    console.log(`[FILTER] Removed ${removedCount} Wikipedia sources`);
+  }
+
+  // Use filtered results only if we still have enough sources (≥5)
+  // Otherwise, keep original results to ensure sufficient coverage
+  const finalResults = filtered.length >= 5 ? filtered : merged;
+
+  if (filtered.length < 5 && removedCount > 0) {
+    console.log('[FILTER] Skipping Wikipedia filter due to insufficient remaining sources');
+  }
+
   // If we have very few results, supplement with fallback query
-  if (merged.length < 5) {
+  if (finalResults.length < 5) {
     console.log('[SEARCH] Few results, supplementing with fallback query');
     const fallbackResults = await searchProvider.search(fallbackQuery, {
       maxResults: MAX_RESULTS_PER_QUERY,
     });
-    return mergeSearchResults([merged, fallbackResults]).slice(0, 20);
+    return mergeSearchResults([finalResults, fallbackResults]).slice(0, 20);
   }
 
   // Return top 20 results
-  return merged.slice(0, 20);
+  return finalResults.slice(0, 20);
 }
 
 /**
@@ -250,5 +268,29 @@ function batchQueries(queries: string[], batchSize: number): string[][] {
     batches.push(queries.slice(i, i + batchSize));
   }
   return batches;
+}
+
+/**
+ * Filter out Wikipedia sources from search results
+ * Removes all wikipedia.org and wikimedia.org domains (all language variants)
+ * @param results Search results to filter
+ * @returns Filtered results without Wikipedia sources
+ */
+function filterWikipediaSources(results: SearchResult[]): SearchResult[] {
+  return results.filter((result) => {
+    try {
+      const url = new URL(result.url);
+      const hostname = url.hostname.toLowerCase();
+      
+      // Filter out all Wikipedia and Wikimedia domains
+      // This covers en.wikipedia.org, es.wikipedia.org, fr.wikipedia.org, etc.
+      const isWikipedia = hostname.includes('wikipedia.org') || hostname.includes('wikimedia.org');
+      
+      return !isWikipedia;
+    } catch {
+      // If URL parsing fails, keep the result
+      return true;
+    }
+  });
 }
 

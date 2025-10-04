@@ -23,6 +23,12 @@ export function getUserBandit(userId: string): ThompsonSamplingBandit {
 /**
  * Logs a user interaction event
  * Automatically updates the user's bandit based on event type
+ * 
+ * Click-only learning: We only learn from explicit clicks, not impressions.
+ * Rationale: Users see ~15 sources but engage with 2-3. Recording all
+ * shown sources as "impressions" creates false negatives that dilute learning.
+ * The bandit learns "this user didn't like 13 sources" when really they
+ * just didn't have time to read them all.
  */
 export function logEvent(event: UserEvent): void {
   eventLog.push(event);
@@ -30,21 +36,13 @@ export function logEvent(event: UserEvent): void {
 
   const bandit = getUserBandit(event.userId);
 
-  // Update bandit based on event type
+  // Update bandit based on event type (click-only learning)
   if (event.eventType === 'SOURCE_CLICKED' && event.meta?.features) {
     // User clicked a source - this is a success for those feature arms
     const features = event.meta.features as ContentFeatures;
     const arms = featuresToArms(features);
     bandit.recordClick(arms);
-    console.log(`[BANDIT] Recorded click for ${event.userId}: ${arms.join(', ')}`);
-  } else if (event.eventType === 'SOURCE_EXPANDED' && event.meta?.allSourceFeatures) {
-    // User saw sources but didn't click yet - record impressions
-    const allFeatures = event.meta.allSourceFeatures as ContentFeatures[];
-    for (const features of allFeatures) {
-      const arms = featuresToArms(features);
-      bandit.recordImpression(arms);
-    }
-    console.log(`[BANDIT] Recorded ${allFeatures.length} impressions for ${event.userId}`);
+    console.log(`[BANDIT] Learning from click (click-only mode) for ${event.userId}: ${arms.join(', ')}`);
   }
 }
 

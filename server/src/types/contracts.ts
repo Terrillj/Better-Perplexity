@@ -76,7 +76,7 @@ export type AnswerPacket = z.infer<typeof AnswerPacketSchema>;
 export const UserEventSchema = z.object({
   userId: z.string(),
   timestamp: z.number(),
-  eventType: z.enum(['SOURCE_CLICKED', 'CITATION_HOVERED', 'SOURCE_EXPANDED', 'ANSWER_SAVED']),
+  eventType: z.enum(['SOURCE_CLICKED', 'CITATION_CLICKED', 'CITATION_HOVERED', 'ANSWER_SAVED']),
   sourceId: z.string().optional(),
   queryId: z.string().optional(),
   meta: z.record(z.any()).optional(),

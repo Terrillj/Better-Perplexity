@@ -143,7 +143,8 @@ function processCitations(
 export async function synthesizeAnswer(
   query: string,
   docs: RankedDoc[],
-  queryId: string
+  queryId: string,
+  onChunk?: (chunk: string) => void
 ): Promise<AnswerPacket> {
   if (docs.length === 0) {
     throw new Error('Cannot synthesize answer: no documents provided');
@@ -159,6 +160,7 @@ export async function synthesizeAnswer(
       systemPrompt: SYNTHESIS_SYSTEM_PROMPT,
       temperature: 0.3,
       maxTokens: 1500,
+      onChunk,
     });
     
     // Process citations
