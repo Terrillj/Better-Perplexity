@@ -24,11 +24,9 @@ export function getUserBandit(userId: string): ThompsonSamplingBandit {
  * Logs a user interaction event
  * Automatically updates the user's bandit based on event type
  * 
- * Click-only learning: We only learn from explicit clicks, not impressions.
- * Rationale: Users see ~15 sources but engage with 2-3. Recording all
- * shown sources as "impressions" creates false negatives that dilute learning.
- * The bandit learns "this user didn't like 13 sources" when really they
- * just didn't have time to read them all.
+ * Proper Thompson Sampling: Records pending impressions when sources are shown,
+ * resolves them as successes (clicks) or failures (timeout). Uses fractional
+ * credit to avoid "5 features = 5x evidence" problem.
  */
 export function logEvent(event: UserEvent): void {
   eventLog.push(event);
@@ -36,13 +34,44 @@ export function logEvent(event: UserEvent): void {
 
   const bandit = getUserBandit(event.userId);
 
-  // Update bandit based on event type (click-only learning)
+  // Update bandit based on event type
   if (event.eventType === 'SOURCE_CLICKED' && event.meta?.features) {
-    // User clicked a source - this is a success for those feature arms
+    // User clicked a source - resolve as success with fractional credit
     const features = event.meta.features as ContentFeatures;
     const arms = featuresToArms(features);
-    bandit.recordClick(arms);
-    console.log(`[BANDIT] Learning from click (click-only mode) for ${event.userId}: ${arms.join(', ')}`);
+    
+    console.log(`\n========== CLICK RECORDED ==========`);
+    console.log(`[BANDIT] User: ${event.userId}`);
+    console.log(`[BANDIT] Source: ${event.sourceId}`);
+    console.log(`[BANDIT] Features: ${JSON.stringify(features, null, 2)}`);
+    console.log(`[BANDIT] Arms: ${arms.join(', ')}`);
+    console.log(`[BANDIT] Fractional credit: ${(1/arms.length).toFixed(3)} per arm`);
+    
+    // Log before state for first arm
+    const firstArm = arms[0];
+    const beforeStats = bandit.getArmStats(firstArm);
+    console.log(`\n[BANDIT] Before click (${firstArm}):`);
+    if (beforeStats) {
+      console.log(`  α (successes) = ${beforeStats.successes.toFixed(3)}`);
+      console.log(`  β (failures) = ${beforeStats.failures.toFixed(3)}`);
+      console.log(`  Score = ${((beforeStats.successes + 1) / (beforeStats.successes + beforeStats.failures + 2)).toFixed(3)}`);
+    } else {
+      console.log(`  No prior stats (first time seeing this arm)`);
+    }
+    
+    // Record click
+    bandit.recordClick(arms, event.sourceId);
+    
+    // Log after state
+    const afterStats = bandit.getArmStats(firstArm);
+    console.log(`\n[BANDIT] After click (${firstArm}):`);
+    if (afterStats) {
+      console.log(`  α (successes) = ${afterStats.successes.toFixed(3)}`);
+      console.log(`  β (failures) = ${afterStats.failures.toFixed(3)}`);
+      console.log(`  Score = ${((afterStats.successes + 1) / (afterStats.successes + afterStats.failures + 2)).toFixed(3)}`);
+    }
+    
+    console.log(`=====================================\n`);
   }
 }
 

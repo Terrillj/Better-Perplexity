@@ -31,7 +31,7 @@ describe('Bandit Integration with Event Store', () => {
     const expertStats = bandit.getArmStats('depth:expert');
     
     expect(expertStats).toBeDefined();
-    expect(expertStats!.successes).toBeGreaterThanOrEqual(1);
+    expect(expertStats!.successes).toBeGreaterThanOrEqual(0.2); // Fractional credit: 1/5 features
   });
 
 

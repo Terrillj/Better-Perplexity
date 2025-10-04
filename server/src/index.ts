@@ -9,6 +9,13 @@ import preferencesRouter from './routes/preferences.js';
 // Load environment variables from parent directory
 config({ path: '../.env' });
 
+// Debug flags
+const DEBUG_BANDIT = process.env.DEBUG_BANDIT === 'true';
+
+export const DEBUG_MODE = {
+  bandit: DEBUG_BANDIT,
+};
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 

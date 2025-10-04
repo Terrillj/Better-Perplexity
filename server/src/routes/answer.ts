@@ -8,6 +8,8 @@ import { applyPersonalization } from '../ranker/personalize.js';
 import { synthesizeAnswer } from '../llm/synthesize.js';
 import { AnswerPacketSchema } from '../types/contracts.js';
 import { randomUUID } from 'crypto';
+import { getUserBandit } from '../events/store.js';
+import { featuresToArms } from '../ranker/bandit.js';
 
 const router = Router();
 
@@ -26,6 +28,24 @@ router.post('/', async (req, res) => {
   try {
     const { query, userId, plan: providedPlan } = AnswerRequestSchema.parse(req.body);
     const queryId = randomUUID();
+
+    // Resolve any pending impressions from previous queries
+    if (userId) {
+      const bandit = getUserBandit(userId);
+      bandit.resolvePendingImpressions(25000); // 25 second timeout
+      
+      // Log bandit state summary
+      const debugState = bandit.getDebugState();
+      console.log(`\n========== BANDIT STATE SUMMARY ==========`);
+      console.log(`[BANDIT] User: ${userId}`);
+      console.log(`[BANDIT] Total arms tracked: ${debugState.totalArms}`);
+      console.log(`[BANDIT] Pending impressions: ${debugState.pendingImpressions}`);
+      console.log(`\n[BANDIT] Top 10 arms by score:`);
+      debugState.armDetails.slice(0, 10).forEach((detail, idx) => {
+        console.log(`  ${idx + 1}. ${detail.arm.padEnd(25)} | Score: ${(detail.score * 100).toFixed(1)}% | α=${detail.alpha}, β=${detail.beta} | Formula: ${detail.formula}`);
+      });
+      console.log(`==========================================\n`);
+    }
 
     // Set up SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
@@ -56,6 +76,18 @@ router.post('/', async (req, res) => {
     // Step 5: Apply personalization
     if (userId) {
       rankedDocs = applyPersonalization(userId, rankedDocs);
+      
+      // Record pending impressions for top 8 shown sources
+      const bandit = getUserBandit(userId);
+      const topSources = rankedDocs.slice(0, 8).filter(doc => doc.features);
+      
+      for (const doc of topSources) {
+        const arms = featuresToArms(doc.features!);
+        bandit.recordPendingImpression(arms, queryId, doc.url); // Use URL as sourceId
+      }
+      
+      console.log(`\n[BANDIT] ✓ Recorded ${topSources.length} pending impressions for query: ${queryId}`);
+      console.log(`[BANDIT] These will resolve as failures in 25s or on next query if not clicked`);
     }
 
     // Step 6: Synthesize answer with streaming
