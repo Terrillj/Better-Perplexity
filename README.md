@@ -57,8 +57,8 @@ open http://localhost:5173
 
 - Node 20+
 - pnpm 8+
-- Brave Search API key (or set `MOCK_MODE=1`)
-- OpenAI API key (or set `MOCK_MODE=1`)
+- Brave Search API key
+- OpenAI API key
 
 ### Installation
 
@@ -190,7 +190,6 @@ PORT=3002
 
 **Solutions:**
 - Brave key is already provided in `.env.example` (BSAg9FdN7meMZ7HaL5H86UPO0W3D-a2)
-- If still failing, set `MOCK_MODE=1` in `.env` for testing without API
 - Or get your own key at: https://api.search.brave.com/register
 
 ### Cannot connect to server

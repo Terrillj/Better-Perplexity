@@ -2,7 +2,7 @@ import { UserEvent } from '../types/contracts.js';
 import { ThompsonSamplingBandit, featuresToArms } from '../ranker/bandit.js';
 import type { ContentFeatures } from '../ranker/featureExtractor.js';
 
-// In-memory event store (TODO: Replace with SQLite)
+// In-memory event store (production would use SQLite for persistence)
 const eventLog: UserEvent[] = [];
 
 // In-memory bandit instances per user
@@ -116,34 +116,7 @@ export function clearUserData(userId: string): void {
   console.log(`[CLEAR] Removed ${removedCount} events and bandit state for user: ${userId}`);
 }
 
-/**
- * @deprecated Use getUserBanditScores() instead
- * Legacy preference computation for backwards compatibility
- */
-export function getUserPreferences(userId: string) {
-  const events = getUserEvents(userId);
-  const clicks = events.filter(e => e.eventType === 'SOURCE_CLICKED');
-
-  if (clicks.length === 0) {
-    return {
-      totalEvents: 0,
-      tldPreference: null,
-      recencyPreference: null,
-      contentTypePreference: null,
-    };
-  }
-
-  // TODO: Remove this function once all code uses getUserBanditScores()
-  return {
-    totalEvents: events.length,
-    tldPreference: { edu: 0.7, com: 0.2, org: 0.1 } as Record<string, number>,
-    recencyPreference: 0.6,
-    contentTypePreference: null,
-  };
-}
-
-// TODO: Replace with SQLite implementation
-// - Create schema: events(id, userId, timestamp, eventType, sourceId, queryId, meta)
-// - Add index on userId and timestamp
-// - Implement cleanup for old events (> 30 days)
+// For production: Implement SQLite persistence for user preferences
+// Schema: events(id, userId, timestamp, eventType, sourceId, queryId, meta)
+// Index on userId and timestamp for fast queries
 

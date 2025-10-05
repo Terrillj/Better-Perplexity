@@ -22,10 +22,9 @@ export function rankDocuments(
     if (!searchResult) continue;
 
     // Compute signals
-    const legacyScore = computeKeywordOverlap(query, page); // Keep for comparison
     const bm25Score = bm25.score(query, i);
     
-    console.log(`[RELEVANCE] "${page.title.slice(0, 50)}": legacy=${legacyScore.toFixed(2)}, bm25=${bm25Score.toFixed(2)}`);
+    console.log(`[RELEVANCE] "${page.title.slice(0, 50)}": bm25=${bm25Score.toFixed(2)}`);
     
     const relevance = bm25Score; // Use BM25
     const recency = computeRecency(page.publishedDate || searchResult.publishedDate);
@@ -69,15 +68,6 @@ export function rankDocuments(
   return rankedDocs.sort((a, b) => b.score - a.score);
 }
 
-function computeKeywordOverlap(query: string, page: PageExtract): number {
-  // Legacy keyword overlap for comparison
-  const queryTerms = query.toLowerCase().split(/\s+/);
-  const content = (page.title + ' ' + page.excerpt).toLowerCase();
-
-  const matches = queryTerms.filter(term => content.includes(term)).length;
-  return Math.min(matches / queryTerms.length, 1.0);
-}
-
 function computeRecency(publishedDate: string | null): number {
   if (!publishedDate) return 0.5; // neutral for unknown dates
 
@@ -101,7 +91,7 @@ function computeSourceQuality(domain: string): number {
   if (domain.endsWith('.gov')) return 0.9;
   if (domain.endsWith('.org')) return 0.7;
 
-  // TODO: Use domain reputation score or whitelist
+  // Default score for unknown domains
   return 0.5;
 }
 
