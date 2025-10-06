@@ -42,6 +42,7 @@ describe('Zod Schema Validation', () => {
       rankingReason: 'High score',
       domain: 'example.com',
       publishedDate: null,
+      features: null,
     };
 
     const result = RankedDocSchema.safeParse(validDoc);

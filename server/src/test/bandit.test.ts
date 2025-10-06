@@ -389,18 +389,18 @@ describe('featuresToArms', () => {
   it('should handle different feature values', () => {
     const features: ContentFeatures = {
       depth: 'introductory',
-      style: 'casual',
-      format: 'article',
-      approach: 'theoretical',
-      density: 'sparse',
+      style: 'conversational',
+      format: 'reference',
+      approach: 'conceptual',
+      density: 'concise',
     };
     
     const arms = featuresToArms(features);
     
     expect(arms).toContain('depth:introductory');
-    expect(arms).toContain('style:casual');
-    expect(arms).toContain('format:article');
-    expect(arms).toContain('approach:theoretical');
-    expect(arms).toContain('density:sparse');
+    expect(arms).toContain('style:conversational');
+    expect(arms).toContain('format:reference');
+    expect(arms).toContain('approach:conceptual');
+    expect(arms).toContain('density:concise');
   });
 });

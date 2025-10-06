@@ -1,25 +1,59 @@
 # Environment Setup
 
-## Quick Start
+## Quick Setup (2 minutes)
 
-Copy the example environment file and add your API keys:
-
+### 1. Copy Environment File
 ```bash
 cp .env.example .env
 ```
 
+### 2. Add OpenAI API Key
+1. Visit [OpenAI API Keys](https://platform.openai.com/api-keys)
+2. Create a new secret key
+3. Open `.env` and paste your key:
+   ```
+   OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxx
+   ```
 
-**Note:** The Brave Search API key is already provided for evaluation purposes.
+### 3. Brave Search API Key
+The Brave Search API key is **already provided** in `.env.example` for evaluation purposes. No action needed.
 
+---
 
-**For Evaluators:** You'll need your own OpenAI API key. Cost is minimal for testing (~$0.20 for 20 queries).
+## Requirements
 
-1. **Create Account:** Visit https://platform.openai.com/signup
-2. **Add Billing:** Navigate to Settings → Billing → Add payment method
-3. **Generate Key:** Go to https://platform.openai.com/api-keys → Create new secret key
-4. **Copy Key:** Save it immediately (you won't be able to see it again)
-5. **Add to `.env`:** Paste as `OPENAI_API_KEY=sk-proj-...`
+**OpenAI API:**
+- Billing must be enabled (requires credit card on file)
+- **Cost:** ~$0.10-0.20 for 20 test queries (GPT-4o-mini is very cheap)
+- Model used: `gpt-4o-mini` for query planning, feature extraction, and answer synthesis
 
-**Requirements:**
-- Billing must be enabled (requires credit card)
-- Minimum $5 credit (often comes with $5 free trial credit for new accounts)
+**Brave Search API:**
+- Already provided for testing
+- Personal key please don't abuse :)
+
+---
+
+## Troubleshooting
+
+### Port conflicts
+- Frontend default: `5173`
+- Backend default: `3001`
+- Change in `vite.config.ts` (frontend) or `server/src/index.ts` (backend) if needed
+
+### "Module not found" errors
+```bash
+# Clean install
+rm -rf node_modules web/node_modules server/node_modules
+npm install
+```
+
+---
+
+## Optional: Turn Debug Mode Off
+
+This will hide the "For Testers" box
+
+```bash
+DEBUG_BANDIT=false npm run dev 
+```
+

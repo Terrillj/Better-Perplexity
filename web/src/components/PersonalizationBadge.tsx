@@ -61,7 +61,7 @@ export function PersonalizationBadge({ preferences, totalInteractions }: Persona
           </h3>
           <p className="text-xs text-gray-600">
             You tend to prefer:{' '}
-            {sortedPreferences.map(([arm, score], idx) => (
+            {sortedPreferences.map(([arm], idx) => (
               <span key={arm}>
                 <span className="font-medium text-gray-700">
                   {formatArm(arm)}

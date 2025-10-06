@@ -17,6 +17,13 @@ describe('SourceCard', () => {
     rankingReason: 'High relevance, .edu',
     domain: 'example.edu',
     publishedDate: '2025-09-15',
+    features: {
+      depth: 'intermediate',
+      style: 'technical',
+      format: 'reference',
+      approach: 'practical',
+      density: 'moderate',
+    },
   };
 
   it('renders source information correctly', () => {

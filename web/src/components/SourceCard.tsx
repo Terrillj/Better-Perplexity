@@ -6,21 +6,14 @@ interface SourceCardProps {
   source: RankedDoc;
   index: number;
   onClick?: () => void;
-  userTopArms?: string[]; // Top preferred feature arms for personalization indicator
 }
 
-export function SourceCard({ source, index, onClick, userTopArms = [] }: SourceCardProps) {
+export function SourceCard({ source, index, onClick }: SourceCardProps) {
   const signalBadges = [];
   
   if (source.signals.relevance > 0.7) signalBadges.push('Relevant');
   if (source.signals.recency > 0.7) signalBadges.push('Recent');
   if (source.signals.sourceQuality > 0.7) signalBadges.push('Quality Source');
-
-  // Check if source matches user's top preferences
-  const isPersonalized = source.features && userTopArms.length > 0 && userTopArms.some(arm => {
-    const [category, value] = arm.split(':');
-    return source.features?.[category as keyof typeof source.features] === value;
-  });
 
   // Format feature tags for display
   const formatFeatureTag = (category: string, value: string): { display: string; tooltip: string } => {

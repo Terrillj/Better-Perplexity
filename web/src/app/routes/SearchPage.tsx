@@ -197,7 +197,6 @@ export function SearchPage() {
                         source={source}
                         index={displayIndex}
                         onClick={() => handleSourceClick(source.id, answer.queryId)}
-                        userTopArms={preferencesQuery.data?.topArms.slice(0, 3).map(t => t.arm)}
                       />
                     </div>
                   );
