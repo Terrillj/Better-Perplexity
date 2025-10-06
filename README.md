@@ -147,7 +147,7 @@ The UI presents the synthesized answer with clickable citations and source cards
 
 ```bash
 # 1. Clone and install
-git clone <repo-url>
+git clone https://github.com/Terrillj/Better-Perplexity
 cd Better-Perplexity
 npm install
 
