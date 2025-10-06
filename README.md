@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 What I Built & Why It Matters
+## What I Built & Why It Matters
 
 **The Challenge:** Build a chat interface with internet search capabilities, then take it one step further with a technically compelling feature.
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 🏗️ Pipeline Architecture
+## Pipeline Architecture
 
 ```
 USER QUERY
@@ -111,7 +111,7 @@ The UI presents the synthesized answer with clickable citations and source cards
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Frontend**
 - React 18 + TypeScript
@@ -135,7 +135,7 @@ The UI presents the synthesized answer with clickable citations and source cards
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 20+
@@ -168,7 +168,7 @@ npm run dev
 
 ---
 
-## 🧪 Testing the Personalization
+## Testing the Personalization
 
 The Thompson Sampling system is the core innovation. Here's how to see it learn in real-time:
 
@@ -211,7 +211,7 @@ Query: "Explain blockchain to a beginner"
 
 ---
 
-## 📚 Additional Documentation
+## Additional Documentation
 
 - **[PROJECT_BLUEPRINT.md](./docs/PROJECT_BLUEPRINT.md)** – Complete technical specification
 - **[ENV_SETUP.md](./ENV_SETUP.md)** – Detailed environment configuration
