@@ -10,7 +10,7 @@
 
 **My Solution:** I built a production-grade information retrieval system that goes well beyond a "LLM + search API wrapper." The system delivers citation-backed answers through a multi-stage pipeline that optimizes for quality, transparency, and speed. For the technical leap, I implemented **Thompson Sampling Multi-Armed Bandit personalization**—a well established online learning algorithm— to learn user preferences and adapt search results in real-time.
 
-**Why This Matters:** Instead of using static rules like ("user likes .edu domains"), my system uses **semantic understanding** powered by LLMs and Bayesian inference to learn nuanced preferences like "user prefers expert-level, data-driven research content" dynamically from clicks. This project is meant to exemplify my understanding and ability to work with information retrieval, online learning algorithms, LLM orchestration, and full-stack engineering—all delivered in a polished product you can test in minutes.
+**Why This Matters:** Instead of using static rules like ("user likes .edu domains"), my system uses **semantic understanding** powered by LLM feature extraction and Bayesian inference to learn nuanced preferences like "user prefers expert-level, data-driven research content" dynamically from clicks. This project is meant to exemplify my understanding of and ability to work with information retrieval, online learning algorithms, LLM orchestration, and full-stack engineering—all delivered in a polished product you can test in minutes.
 
 ---
 
